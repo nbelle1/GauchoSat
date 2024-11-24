@@ -32,9 +32,9 @@ void setup(void) {
     Serial.println("No BNO055 detected ... Check your wiring or I2C ADDR!");
     while (1) {
       digitalWrite(ledPin, HIGH);
-      delay(100);
-      digitalWrite(ledPin, LOW);
-      delay(100);
+      // delay(100);
+      // digitalWrite(ledPin, LOW);
+      // delay(100);
     }
   }
 
