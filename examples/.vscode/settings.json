@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "README.C": "cpp"
+        "README.C": "cpp",
+        "io.h": "c",
+        "stdio.h": "c"
     }
 }
