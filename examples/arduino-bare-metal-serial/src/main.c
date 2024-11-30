@@ -37,6 +37,12 @@ int main() {
         serialPrint("Hello World: ");
         serialPrintInt(c);
         serialPrint("\n");
+        serialPrint("USB Register Binary: ");
+        serialPrintBinary(USBCON);
+        serialPrint("\n");
+        serialPrint("USB Register Hex: ");
+        serialPrintHex(USBCON);
+        serialPrint("\n");
         c++;
 
         _delay_ms(1000);

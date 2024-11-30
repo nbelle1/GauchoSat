@@ -15,6 +15,8 @@ uint8_t usb_configured(void);		// is the USB port configured
 // simplified serial
 void serialPrint(const char *s);
 void serialPrintInt(int num);
+void serialPrintBinary(uint8_t regValue);
+void serialPrintHex(uint8_t regValue);
 uint8_t serialRecieve(char *buf, uint8_t size);
 
 

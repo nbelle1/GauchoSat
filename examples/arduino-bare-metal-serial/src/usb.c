@@ -901,7 +901,7 @@ ISR(USB_COM_vect)
 void serialPrint(const char *s) {
 	char c;
 	while (1) {
-        // c = pgm_read_byte(s++);
+        // c = pgm_read_byte(s++); 	// For PSTR
 		c = *s++;
 		if (!c) break;
 		usb_serial_putchar(c);
@@ -911,6 +911,33 @@ void serialPrintInt(int num) {
     char buf[10];  // Buffer to hold the string representation of the integer
     itoa(num, buf, 10);  // Convert integer to string (base 10)
     serialPrint(buf);  // Use serialPrint to send the string
+}
+void serialPrintBinary(uint8_t regValue) {
+    char buf[19];  // Buffer to hold the "0b" prefix and 16 binary digits (16 bits + 3 for "0b" and null terminator)
+
+    buf[0] = '0';  // Add '0' for the binary format
+    buf[1] = 'b';  // Add 'b' for the binary format
+
+    // Iterate over the 16 bits of the register and populate the buffer
+    for (int i = 15; i >= 0; i--) {
+        buf[2 + (15 - i)] = (regValue & (1 << i)) ? '1' : '0';  // Set each bit to '1' or '0'
+    }
+
+    buf[18] = '\0';  // Null-terminate the string
+    serialPrint(buf);  // Print the binary string
+}
+void serialPrintHex(uint8_t regValue) {
+    char buf[5];  // Buffer to hold the "0x" prefix and hexadecimal string (2 hex digits + 3 for "0x" + null terminator)
+    buf[0] = '0';  // Add '0'
+    buf[1] = 'x';  // Add 'x'
+    
+    itoa(regValue, &buf[2], 16);  // Convert register value to hex string starting from the 3rd position
+    // If the value is less than 0x10, prepend a leading zero
+    if (regValue < 0x10) {
+        buf[2] = '0';  // Add leading zero if necessary
+    }
+
+    serialPrint(buf);  // Print the full string with "0x" prefix and hex value
 }
 
 uint8_t serialRecieve(char *buf, uint8_t size){

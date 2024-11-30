@@ -17,5 +17,7 @@
    - In your project directory, run the following command to upload the compiled code:
 
      make upload
+    
+   - Note: Most upload when reset mode light is flashing. Additionaly change the port in Makefile to the port that appears when in reset mode.
 
    This will compile the code and upload it to the Arduino Micro via AVRDUDE.
