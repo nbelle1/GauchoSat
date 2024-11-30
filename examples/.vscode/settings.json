@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "README.C": "cpp",
-        "io.h": "c",
-        "stdio.h": "c",
-        "config.h": "c",
-        "uart_hal.h": "c"
-    }
-}
