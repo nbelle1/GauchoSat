@@ -7,42 +7,27 @@
 
 #include "usb.h"
 
-void init(void){
-    usb_init();
-    sei();                     //Enable Global Interrupts
 
-    while (!usb_configured());
-    _delay_ms(1000);
+void init(void){ 
+    serial.begin();
 }
 
 int main() {
-    DDRC |= (1 << PC7); 
-    DDRB |= (1 << PB0); 
     init();
-    
-    // Main loop
     int c = 0;
+
+    //Main Loop
     while (1) {
-        // Main loop does nothing, just wait for interrupts
-        // wait for the user to run their terminal emulator program
-		// which sets DTR to indicate it is ready to receive.
-		while (!(usb_serial_get_control() & USB_SERIAL_DTR)) /* wait */ ;
-
-		// discard anything that was received prior.  Sometimes the
-		// operating system or other software will send a modema
-		// "AT command", which can still be buffered.
-		// usb_serial_flush_input();
-
-        //run
-        serialPrint("Hello World: ");
-        serialPrintInt(c);
-        serialPrint("\n");
-        serialPrint("USB Register Binary: ");
-        serialPrintBinary(USBCON);
-        serialPrint("\n");
-        serialPrint("USB Register Hex: ");
-        serialPrintHex(USBCON);
-        serialPrint("\n");
+        
+        serial.print("Hello World: ");
+        serial.printInt(c);
+        serial.println();
+        serial.print("USB Register Binary: ");
+        serial.printBinary(USBCON);
+        serial.println();
+        serial.print("USB Register Hex: ");
+        serial.printHex(USBCON);
+        serial.println();
         c++;
 
         _delay_ms(1000);

@@ -285,6 +285,7 @@ void usb_init(void){
 	cdc_line_rtsdtr = 0;
 
     UDIEN = (1<<EORSTE)|(1<<SOFE);
+	sei();                     				//Enable Global Interrupts
 }
 
 // number of bytes available in the receive buffer
@@ -601,7 +602,8 @@ void usb_serial_flush_output(void)
 // functions to read the various async serial settings.  These
 // aren't actually used by USB at all (communication is always
 // at full USB speed), but they are set by the host so we can
-// set them properly if we're converting the USB to a real serial
+// set them properly if we're converting the USB to a real 
+
 // communication
 uint32_t usb_serial_get_baud(void)
 {
@@ -895,10 +897,37 @@ ISR(USB_COM_vect)
  *  Simplified Functions -  Written by Kpazawala Windross
  *
  **************************************************************************/
+Serial_t serial = {
+    .begin = serial_begin,
+    .print = serial_print,
+	.println = serial_println,
+    .printInt = serial_print_int,
+    .printBinary = serial_print_binary,
+    .printHex = serial_print_hex
+};
 
+// Function to begin Serial
+void serial_begin(){
+	usb_init();
+	while (!usb_configured());
+	_delay_ms(1000);
+}
+
+//Function to wait for Serial Monitor to Open
+void wait_serial_open(void){
+	    // wait for the user to run their terminal emulator program
+		// which sets DTR to indicate it is ready to receive.
+		while (!(usb_serial_get_control() & USB_SERIAL_DTR)) /* wait */ ;
+
+		// discard anything that was received prior.  Sometimes the
+		// operating system or other software will send a modema
+		// "AT command", which can still be buffered.
+		usb_serial_flush_input();
+}
+	
 // Send a string to the USB serial port.
 // Store the string in program memory (Flash) using PSTR. This conserves RAM usage and is more efficient for static strings.
-void serialPrint(const char *s) {
+void serial_print(const char *s) {
 	char c;
 	while (1) {
         // c = pgm_read_byte(s++); 	// For PSTR
@@ -907,12 +936,15 @@ void serialPrint(const char *s) {
 		usb_serial_putchar(c);
 	}
 }
-void serialPrintInt(int num) {
+void serial_println(void) {
+	serial_print("\n");
+}
+void serial_print_int(int num) {
     char buf[10];  // Buffer to hold the string representation of the integer
     itoa(num, buf, 10);  // Convert integer to string (base 10)
-    serialPrint(buf);  // Use serialPrint to send the string
+    serial_print(buf);  // Use serialPrint to send the string
 }
-void serialPrintBinary(uint8_t regValue) {
+void serial_print_binary(uint8_t regValue) {
     char buf[19];  // Buffer to hold the "0b" prefix and 16 binary digits (16 bits + 3 for "0b" and null terminator)
 
     buf[0] = '0';  // Add '0' for the binary format
@@ -924,9 +956,9 @@ void serialPrintBinary(uint8_t regValue) {
     }
 
     buf[18] = '\0';  // Null-terminate the string
-    serialPrint(buf);  // Print the binary string
+    serial_print(buf);  // Print the binary string
 }
-void serialPrintHex(uint8_t regValue) {
+void serial_print_hex(uint8_t regValue) {
     char buf[5];  // Buffer to hold the "0x" prefix and hexadecimal string (2 hex digits + 3 for "0x" + null terminator)
     buf[0] = '0';  // Add '0'
     buf[1] = 'x';  // Add 'x'
@@ -937,10 +969,10 @@ void serialPrintHex(uint8_t regValue) {
         buf[2] = '0';  // Add leading zero if necessary
     }
 
-    serialPrint(buf);  // Print the full string with "0x" prefix and hex value
+    serial_print(buf);  // Print the full string with "0x" prefix and hex value
 }
 
-uint8_t serialRecieve(char *buf, uint8_t size){
+uint8_t serial_recieve(char *buf, uint8_t size){
 	int16_t r;
 	uint8_t data_length = 0;
 
@@ -964,3 +996,4 @@ uint8_t serialRecieve(char *buf, uint8_t size){
 	}
 	return data_length;
 }
+

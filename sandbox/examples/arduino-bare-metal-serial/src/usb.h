@@ -7,17 +7,25 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
+
 
 // setup
 void usb_init(void);			    // initialize everything
 uint8_t usb_configured(void);		// is the USB port configured
 
 // simplified serial
-void serialPrint(const char *s);
-void serialPrintInt(int num);
-void serialPrintBinary(uint8_t regValue);
-void serialPrintHex(uint8_t regValue);
-uint8_t serialRecieve(char *buf, uint8_t size);
+void wait_serial_open(void);
+void serial_begin();
+
+void serial_print(const char *s);
+void serial_println(void);
+
+void serial_print_int(int num);
+void serial_print_binary(uint8_t regValue);
+void serial_print_hex(uint8_t regValue);
+
+uint8_t serial_recieve(char *buf, uint8_t size);
 
 
 // receiving data
@@ -38,7 +46,6 @@ uint8_t usb_serial_get_paritytype(void);// get the parity type
 uint8_t usb_serial_get_numbits(void);	// get the number of data bits
 uint8_t usb_serial_get_control(void);	// get the RTS and DTR signal state
 int8_t usb_serial_set_control(uint8_t signals); // set DSR, DCD, RI, etc
-
 
 #define LSB(n) (n & 0xFF)           //Least Significatn Byte
 #define MSB(n) ((n >> 8) & 0xFF)    //Most Significatn Byte
@@ -105,5 +112,20 @@ int8_t usb_serial_set_control(uint8_t signals); // set DSR, DCD, RI, etc
 #define CDC_SET_LINE_CODING	    0x20
 #define CDC_GET_LINE_CODING		0x21
 #define CDC_SET_CONTROL_LINE_STATE	0x22
+
+
+/* Define a struct for the Serial object (Models Arduino Interface)*/
+
+typedef struct {
+    // Function pointers to simulate Serial functions
+    void (*begin)(void);
+    void (*print)(const char *message);
+	void (*println)(void);
+    void (*printInt)(int value);
+    void (*printBinary)(uint8_t value);
+    void (*printHex)(uint8_t value);
+} Serial_t;
+
+extern Serial_t serial;
 
 #endif /* USB_H_ */
