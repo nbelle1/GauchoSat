@@ -1,9 +1,22 @@
-#include "uart_hal.h"
+#include "uart.h"
+#include "usb.h"
 
+static uint8_t rx_buffer[RX_BUFFER_SIZE] = {0};
+volatile static uint16_t rx_count = 0;	
 volatile static uint8_t uart_tx_busy = 1; // BUSY = 0 NOT BUSY = 1
+
+char echo[2];
 
 ISR(USART1_RX_vect){
 
+    volatile static uint16_t rx_write_pos = 0;
+	
+	rx_buffer[rx_write_pos] = UDR1;
+	rx_count++;
+	rx_write_pos++;
+	if(rx_write_pos >= RX_BUFFER_SIZE){
+		rx_write_pos = 0;
+	}
 }
 
 ISR(USART1_TX_vect){
@@ -25,7 +38,10 @@ void uart_init(uint32_t baud, uint8_t mode){
     //Enable TX/RX and TX/RX Interrupt
     UCSR1B |= (1 << RXCIE1) | (1 << TXCIE1) | (1 << RXEN1) | (1 << TXEN1);
 
-    /* Set frame format: 8data, 2stop bit */ UCSR1C = (1<<USBS1)|(3<<UCSZ10);
+    /* Set frame format: 8data, 2stop bit */ 
+    UCSR1C = (1<<USBS1)|(3<<UCSZ10);
+
+    sei();
 }
 
 void uart_send_byte(uint8_t data){
@@ -45,4 +61,20 @@ void uart_send_string(uint8_t *c){
         i++;
     }while(c[i] != '\0');
     uart_send_byte(c[i]);
+}
+
+uint16_t uart_read_count(void){
+	return rx_count;
+}
+uint8_t uart_read(void){
+	static uint16_t rx_read_pos = 0;
+	uint8_t data = 0;
+	
+	data = rx_buffer[rx_read_pos];
+	rx_read_pos++;
+	rx_count--;
+	if(rx_read_pos >= RX_BUFFER_SIZE){
+		rx_read_pos = 0;
+	}
+	return data;
 }

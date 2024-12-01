@@ -6,7 +6,7 @@ BAUD_RATE   = 115200
 PROTOCOL    = avr109
 
 # Project-specific details
-BIN         = firmware
+TARGET      = main
 SRC_DIR     = src
 OBJ_DIR     = obj
 BUILD_DIR   = build
@@ -17,18 +17,19 @@ OBJS = $(SRC:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 # Compiler and tools
 CC = avr-gcc
-CFLAGS = -Os -mmcu=$(MCU) $(CC_FLAGS)
+CFLAGS = -Os -mmcu=$(MCU) -DF_CPU=$(F_CPU)
+LD_FLAGS = 
 
 # Default target: compile and generate hex file
-default: $(BUILD_DIR)/$(BIN).hex
+default: $(BUILD_DIR)/$(TARGET).hex
 
 # Rule to create .hex file from .elf
-$(BUILD_DIR)/$(BIN).hex: $(BUILD_DIR)/$(BIN).elf
+$(BUILD_DIR)/$(TARGET).hex: $(BUILD_DIR)/$(TARGET).elf
 	@mkdir -p $(BUILD_DIR)
 	avr-objcopy -O ihex -R .eeprom $< $@
 
 # Rule to create .elf file from object files
-$(BUILD_DIR)/$(BIN).elf: $(OBJS)
+$(BUILD_DIR)/$(TARGET).elf: $(OBJS)
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CFLAGS) $(LD_FLAGS) -o $@ $^
 
@@ -38,8 +39,8 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Upload target (using avrdude)
-upload: $(BUILD_DIR)/$(BIN).hex
-	avrdude -F -V -c $(PROTOCOL) -p $(MCU) -P $(PORT) -b $(BAUD_RATE) -U flash:w:$< 
+upload: $(BUILD_DIR)/$(TARGET).hex
+	avrdude -F -V -c $(PROTOCOL) -p $(MCU) -P $(PORT) -b $(BAUD_RATE) -U flash:w:$(BUILD_DIR)/$(TARGET).hex 
 
 # Clean up object files and binaries
 clean:
