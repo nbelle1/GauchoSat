@@ -5,3 +5,4 @@ firmware/GauchoSat_Project/.vscode/.browse.c_cpp.db*
 firmware/GauchoSat_Project/.vscode/c_cpp_properties.json
 firmware/GauchoSat_Project/.vscode/launch.json
 firmware/GauchoSat_Project/.vscode/ipch
+venv
