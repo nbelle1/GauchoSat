@@ -12,13 +12,13 @@ void BSP_ledOff(void);
 void BSP_ledOn(void);
 
 /* define the event signals used in the application ------------------------*/
-enum BlinkySignals {
+enum CubeSatSignals {
     DUMMY_SIG = Q_USER_SIG,
     MAX_SIG /* the last signal */
 };
 
 /* active object(s) used in this application -------------------------------*/
-extern struct Blinky AO_Blinky; /* opaque struct */
-void Blinky_ctor(void);
+extern struct CubeSat AO_CubeSat; /* opaque struct */
+void CubeSat_ctor(void);
 
 #endif /* BSP_H */
