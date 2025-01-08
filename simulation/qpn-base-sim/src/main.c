@@ -6,6 +6,7 @@
 
 // Q_DEFINE_THIS_FILE
 
+
 /* Local-scope objects -----------------------------------------------------*/
 static QEvt l_CubeSatQSto[10]; /* Event queue storage for CubeSat */
 
@@ -15,6 +16,15 @@ QActiveCB const Q_ROM QF_active[] = {
     { (QActive *)&AO_CubeSat,  l_CubeSatQSto,     Q_DIM(l_CubeSatQSto)     }
 };
 
+/* local objects -----------------------------------------------------------*/
+static void dispatch(QSignal sig);
+int seed;
+
+#define CALLTIME 20 //200 or 100 or 50 or 20 or 10
+#define TOTAL_SIM_TIME 100000
+#define TRUE 1
+#define FALSE 0
+
 int main() {
     printf("QF_INIT \n");
     // Initialize the QF-nano framework
@@ -22,10 +32,13 @@ int main() {
     BSP_init();
 
     CubeSat_ctor();  // Initialize CubeSat AO
+    QHsm_init_((QHsm *)&AO_CubeSat);
 
-    while(1){
-        QF_run();
-    }
+    dispatch(Q_LEO_SIG);
+    dispatch(Q_ACTIVE_SIG);
+    // while(1){
+    //     QF_run();
+    // }
 
     return 0;
 }
@@ -33,3 +46,8 @@ int main() {
 // void loop() {
 //   QF_run();  // Run the QF-nano framework
 // }
+
+static void dispatch(QSignal sig) {
+    Q_SIG((QHsm *)&AO_CubeSat) = sig;
+    QHsm_dispatch_((QHsm *)&AO_CubeSat);              /* dispatch the event */
+}

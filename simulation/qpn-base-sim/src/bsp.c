@@ -7,7 +7,7 @@ void BSP_init(void) {
     printf("Simple CubeSat example\n");
     printf("QP-nano version: ");
     printf(QP_VERSION_STR);
-    printf("Press Ctrl-C to quit...");
+    printf("\nPress Ctrl-C to quit... \n");
     
 }
 

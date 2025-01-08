@@ -34,7 +34,7 @@ static QState CubeSat_launch(CubeSat * const me) {
     QState status_;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Launch State");
+            printf("Cubesat in Launch State\n");
             /* ALL SYSTEM IDLE/OFF CHECK*/
 
 
@@ -42,7 +42,7 @@ static QState CubeSat_launch(CubeSat * const me) {
             break;
         }
         case Q_LEO_SIG: {
-            printf("LEO Signal from Launch State");
+            printf("LEO Signal from Launch State\n");
             status_ = Q_TRAN(&CubeSat_leo);
             break;
         }
@@ -57,18 +57,18 @@ static QState CubeSat_leo(CubeSat * const me) {
     QState status_;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in LEO State");
+            printf("Cubesat in LEO State\n");
             /* CHARGE BATTERIES */
             status_ = Q_TRAN(&CubeSat_charge);
             break;
         }
         case Q_ACTIVE_SIG: {
-            printf("Active Signal from LEO State");
+            printf("Active Signal from LEO State\n");
             status_ = Q_TRAN(&CubeSat_active);
             break;
         }
         case Q_CHARGE_SIG: {
-            printf("Charge Signal from LEO State");
+            printf("Charge Signal from LEO State\n");
             status_ = Q_TRAN(&CubeSat_charge);
             break;
         }
@@ -84,14 +84,14 @@ static QState CubeSat_charge(CubeSat * const me) {
     QState status_;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Charge State");
+            printf("Cubesat in Charge State\n");
             /* TURN OFF ALL COMPONENTS/ PUT THEM IN IDLE */
 
             status_ = Q_HANDLED();
             break;
         }
         case Q_TICK_SIG: {
-            printf("Titck Signal from Charge State");
+            printf("Titck Signal from Charge State\n");
             /* CHECK BATTERY POWER PERIODICALLY  */
 
             status_ = Q_HANDLED();
@@ -109,7 +109,7 @@ static QState CubeSat_active(CubeSat * const me) {
     QState status_;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Active State");
+            printf("Cubesat in Active State\n");
 
             status_ = Q_HANDLED();
             break;
