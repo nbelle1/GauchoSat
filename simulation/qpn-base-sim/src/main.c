@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include "time.h"
 
 #include "config.h"
 #include "qpn.h"    /* QP-nano framework API */
@@ -17,17 +19,34 @@ QActiveCB const Q_ROM QF_active[] = {
 };
 
 /* local objects -----------------------------------------------------------*/
+static FILE *l_outFile = (FILE *)0;
 static void dispatch(QSignal sig);
+static int outf;
+int simTime = 0;            /* TIME MINUTES */
 int seed;
 
-#define CALLTIME 20 //200 or 100 or 50 or 20 or 10
-#define TOTAL_SIM_TIME 100000
+#define TOTAL_SIM_TIME 50
 #define TRUE 1
 #define FALSE 0
 
-int main() {
-    printf("QF_INIT \n");
+void readCSV(const char *filename);
+double total_power_min[TOTAL_SIM_TIME];
+
+int main(int argc, char *argv[]) {
+    if (argc > 1) {             /* file name provided? */
+        outf = TRUE;            /* write output trace */
+        l_outFile = fopen(argv[1], "w");
+    } else  				    /* just do the stats */
+        outf = FALSE;
+
+    if (outf) fprintf(l_outFile, "QHsmTst example for CubeSat, QP-nano %s\n",
+            QP_getVersion());
+
+    readCSV(argv[2]);
+
+    
     // Initialize the QF-nano framework
+    printf("QF_INIT \n");
     QF_init(Q_DIM(QF_active));
     BSP_init();
 
@@ -36,9 +55,15 @@ int main() {
 
     dispatch(Q_LEO_SIG);
     dispatch(Q_ACTIVE_SIG);
-    // while(1){
-    //     QF_run();
-    // }
+
+    while (simTime < TOTAL_SIM_TIME){
+       if (outf) fprintf(l_outFile, "total power minute %d:, %lf\n",
+            simTime+1, total_power_min[simTime]);
+
+        simTime++;
+    }
+
+    if (outf) fclose(l_outFile);
 
     return 0;
 }
@@ -50,4 +75,33 @@ int main() {
 static void dispatch(QSignal sig) {
     Q_SIG((QHsm *)&AO_CubeSat) = sig;
     QHsm_dispatch_((QHsm *)&AO_CubeSat);              /* dispatch the event */
+}
+
+void readCSV(const char *filename) {
+    FILE *file = fopen(filename, "r");
+    if (file == NULL) {
+        perror("Error opening file");
+        exit(EXIT_FAILURE);
+    }
+
+    char line[1024];
+    int lineNumber = 0;
+
+    printf("Reading values from the CSV:\n");
+    while (fgets(line, sizeof(line), file)) {
+        double value;
+        if (sscanf(line, "%lf", &value) == 1) { // Parse the line as a double
+            if(lineNumber > TOTAL_SIM_TIME){
+                break;
+            }
+            printf("Line %d: %lf\n", lineNumber, value);
+            total_power_min[lineNumber] = value;
+            lineNumber++;
+        } else {
+            fprintf(stderr, "Invalid line format at line %d: %s", ++lineNumber, line);
+        }
+    }
+
+    fclose(file);
+    printf("Finished reading CSV file.\n");
 }

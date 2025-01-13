@@ -21,7 +21,12 @@ enum CubeSatSignals {
 };
 
 /* active object(s) used in this application -------------------------------*/
-extern struct CubeSat AO_CubeSat; /* opaque struct */
-void CubeSat_ctor(void);
 
+#define BATTERY_MAX_W 48            /* 48 Wh 4.5A max*/
+#define BATTERY_MAX_A 4.5
+extern float battery_charge;
+extern int MOVE_TIME_F;
+
+extern struct CubeSat AO_CubeSat;   /* opaque struct */
+void CubeSat_ctor(void);
 #endif /* BSP_H */
