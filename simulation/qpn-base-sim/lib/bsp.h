@@ -24,7 +24,9 @@ enum CubeSatSignals {
 
 #define BATTERY_MAX_W 48            /* 48 Wh 4.5A max*/
 #define BATTERY_MAX_A 4.5
-extern float battery_charge;
+
+extern double current_total_power_min;
+extern float battery_watt_h;
 extern int MOVE_TIME_F;
 
 extern struct CubeSat AO_CubeSat;   /* opaque struct */

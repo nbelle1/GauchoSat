@@ -4,6 +4,10 @@
 #include "qpn.h"    /* QP-nano framework API */
 #include "../lib/bsp.h"  /* Board Support Package interface */
 
+/* Define the CubeSat Variables  --------------------------------------*/
+float battery_watt_h = 0.0f;
+
+
 /* Declare the CubeSat class --------------------------------------*/
 typedef struct CubeSat {
     QActive super;
@@ -72,7 +76,15 @@ static QState CubeSat_leo(CubeSat * const me) {
             status_ = Q_TRAN(&CubeSat_charge);
             break;
         }
+        case Q_TICK_SIG: {
+            printf("Tick Signal from Leo State\n");
+            /* CHECK BATTERY POWER PERIODICALLY  */
+            battery_watt_h += current_total_power_min/60;
+            status_ = Q_HANDLED();
+            break;
+        }
         default: {
+            printf("Cubesat in Leo State return super\n");
             status_ = Q_SUPER(&QHsm_top);
             break;
         }
@@ -86,13 +98,6 @@ static QState CubeSat_charge(CubeSat * const me) {
         case Q_ENTRY_SIG: {
             printf("Cubesat in Charge State\n");
             /* TURN OFF ALL COMPONENTS/ PUT THEM IN IDLE */
-
-            status_ = Q_HANDLED();
-            break;
-        }
-        case Q_TICK_SIG: {
-            printf("Titck Signal from Charge State\n");
-            /* CHECK BATTERY POWER PERIODICALLY  */
 
             status_ = Q_HANDLED();
             break;
@@ -115,7 +120,7 @@ static QState CubeSat_active(CubeSat * const me) {
             break;
         }
         default: {
-            status_ = Q_SUPER(&QHsm_top);
+            status_ = Q_SUPER(&CubeSat_leo);
             break;
         }
     }

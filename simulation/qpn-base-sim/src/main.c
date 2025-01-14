@@ -31,6 +31,7 @@ int seed;
 
 void readCSV(const char *filename);
 double total_power_min[TOTAL_SIM_TIME];
+double current_total_power_min;
 
 int main(int argc, char *argv[]) {
     if (argc > 1) {             /* file name provided? */
@@ -55,11 +56,15 @@ int main(int argc, char *argv[]) {
 
     dispatch(Q_LEO_SIG);
     dispatch(Q_ACTIVE_SIG);
+    
 
     while (simTime < TOTAL_SIM_TIME){
        if (outf) fprintf(l_outFile, "total power minute %d:, %lf\n",
             simTime+1, total_power_min[simTime]);
-
+        
+        current_total_power_min = total_power_min[simTime];
+        dispatch(Q_TICK_SIG);
+        printf("Total power in battery: %.2f\n", battery_watt_h);
         simTime++;
     }
 
