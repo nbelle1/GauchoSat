@@ -79,12 +79,19 @@ static QState CubeSat_leo(CubeSat * const me) {
         case Q_TICK_SIG: {
             printf("Tick Signal from Leo State\n");
             /* CHECK BATTERY POWER PERIODICALLY  */
-            battery_watt_h += current_total_power_min/60;
+            if (battery_watt_h <= BATTERY_MAX_W){
+                battery_watt_h += current_total_power_min/60;
+            } 
+
+            if (battery_watt_h < BATTERY_MAX_W * .60 ) {
+                status_ = Q_TRAN(&CubeSat_charge);
+            }   else if (battery_watt_h > BATTERY_MAX_W * .65) {
+                status_ = Q_TRAN(&CubeSat_active);
+            } 
             status_ = Q_HANDLED();
             break;
         }
         default: {
-            printf("Cubesat in Leo State return super\n");
             status_ = Q_SUPER(&QHsm_top);
             break;
         }
@@ -102,8 +109,13 @@ static QState CubeSat_charge(CubeSat * const me) {
             status_ = Q_HANDLED();
             break;
         }
+        case Q_RUN_SIG: {
+            printf("Run Signal from Charge State\n");
+            status_ = Q_HANDLED();
+            break;
+        }
         default: {
-            status_ = Q_SUPER(&QHsm_top);
+            status_ = Q_SUPER(&CubeSat_leo);
             break;
         }
     }
@@ -115,7 +127,11 @@ static QState CubeSat_active(CubeSat * const me) {
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
             printf("Cubesat in Active State\n");
-
+            status_ = Q_HANDLED();
+            break;
+        }
+        case Q_RUN_SIG: {
+            printf("Run Signal from Active State\n");
             status_ = Q_HANDLED();
             break;
         }

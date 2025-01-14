@@ -17,7 +17,8 @@ enum CubeSatSignals {
     Q_LEO_SIG,
     Q_ACTIVE_SIG,
     Q_CHARGE_SIG,
-    Q_TICK_SIG
+    Q_TICK_SIG,
+    Q_RUN_SIG
 };
 
 /* active object(s) used in this application -------------------------------*/

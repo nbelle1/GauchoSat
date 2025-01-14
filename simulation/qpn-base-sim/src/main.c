@@ -25,7 +25,7 @@ static int outf;
 int simTime = 0;            /* TIME MINUTES */
 int seed;
 
-#define TOTAL_SIM_TIME 50
+#define TOTAL_SIM_TIME 1100
 #define TRUE 1
 #define FALSE 0
 
@@ -64,6 +64,7 @@ int main(int argc, char *argv[]) {
         
         current_total_power_min = total_power_min[simTime];
         dispatch(Q_TICK_SIG);
+        dispatch(Q_RUN_SIG);
         printf("Total power in battery: %.2f\n", battery_watt_h);
         simTime++;
     }
