@@ -41,7 +41,7 @@ with dot.subgraph(name='cluster_leo') as leo:
 
         telemetry.attr(rank='same')
         
-    leo.edge('Deployment1', 'Detumble1', label='TICK / System Check Done ', ltail='cluster_deployment', lhead='cluster_detumble')
+    leo.edge('Deployment1', 'Detumble1', label='SYSTEMS_CHECK / System Check Done ', ltail='cluster_deployment', lhead='cluster_detumble')
     leo.edge('Detumble1', 'Telemetry1', label='TICK / Detumble Done & RADIO["Detumble Done"]', ltail='cluster_detumble', lhead='cluster_telemetry')
 
 
