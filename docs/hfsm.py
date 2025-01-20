@@ -30,8 +30,8 @@ with dot.subgraph(name='cluster_leo') as leo:
     with leo.subgraph(name='cluster_detumble') as detumble:
         detumble.attr(label='Detumble', style='rounded', rankdir='TB')  # Active superstate layout
         detumble.node('Detumble1', 'TICK / (CHARGE -> TELEMETRY -> RADIO[send rotational velocity] -> Detumble)', shape='plaintext')
-        detumble.node('Detumble2', 'DETUMBLE / (MagneTorquer Adjustment)', shape='plaintext')
-        detumble.node('Detumble2', 'TELEMETRY / (Check rotational velocity)', shape='plaintext')
+        detumble.node('Detumble2', 'DETUMBLE / (MagneTorquer Adjustment According to Rotational Velocity)', shape='plaintext')
+        detumble.node('Detumble3', 'TELEMETRY / (Check rotational velocity)', shape='plaintext')
         detumble.attr(rank='same')
 
     with leo.subgraph(name='cluster_telemetry') as telemetry:
