@@ -1,0 +1,35 @@
+// CubeSat State Machine
+digraph CubeSat {
+	compound=true rankdir=TB
+	Entry [label="" shape=point]
+	Launch1 [label="Launch State" shape=box]
+	Entry -> Launch1 [label=Start]
+	subgraph cluster_leo {
+		label="LEO " rankdir=LR style=rounded
+		Leo1 [label="CHARGE / {charge battery}" shape=plaintext style=dotted]
+		Leo2 [label="RADIO / {send message in buffer}" shape=plaintext style=dotted]
+		Leo3 [label="DE-ORBIT /" shape=plaintext style=dotted]
+		subgraph cluster_deployment {
+			label=Deployment rankdir=TB style=rounded
+			Deployment1 [label="TICK / (CHARGE & SYSTEMS_CHECK)" shape=plaintext]
+			Deployment2 [label="SYSTEMS_CHECK / (Test System & RADIO[\"systems nominal\"])" shape=plaintext]
+			rank=same
+		}
+		subgraph cluster_detumble {
+			label=Detumble rankdir=TB style=rounded
+			Detumble1 [label="TICK / (CHARGE -> TELEMETRY -> RADIO[send rotational velocity] -> Detumble)" shape=plaintext]
+			Detumble2 [label="DETUMBLE / (MagneTorquer Adjustment)" shape=plaintext]
+			Detumble2 [label="TELEMETRY / (Check rotational velocity)" shape=plaintext]
+			rank=same
+		}
+		subgraph cluster_telemetry {
+			label=Telemetry rankdir=TB style=rounded
+			Telemetry1 [label="TICK / (CHARGE -> TELEMETRY -> RADIO[send data])" shape=plaintext]
+			Telemetry2 [label="TELEMETRY / (Collect & Store Data)" shape=plaintext]
+			rank=same
+		}
+		Deployment1 -> Detumble1 [label="TICK / System Check Done " lhead=cluster_detumble ltail=cluster_deployment]
+		Detumble1 -> Telemetry1 [label="TICK / Detumble Done & RADIO[\"Detumble Done\"]" lhead=cluster_telemetry ltail=cluster_detumble]
+	}
+	Launch1 -> Deployment1 [label="LEO Signal" lhead=cluster_deployment]
+}
