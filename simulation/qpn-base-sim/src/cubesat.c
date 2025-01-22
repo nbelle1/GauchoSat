@@ -104,29 +104,25 @@ static QState CubeSat_deployment(CubeSat * const me) {
             printf("Tick Signal from Deployment State\n");
             battery_watt_h -= .01;
 
-            if (battery_watt_h >= BATTERY_MAX_W * 0.65) {
-                if (active == 0) { // Systems running mode
-                    active = 1;
-
-                    dispatch(Q_SYSTEMS_SIG);
-                    status_ = Q_TRAN(&CubeSat_detumble);
-                    break;
-                }
-            } else if ((battery_watt_h < BATTERY_MAX_W * 0.65)) {
-
+            if ((battery_watt_h < BATTERY_MAX_W * 0.65)) {
                 if (battery_watt_h < BATTERY_MAX_W * 0.50) {
                     if (active == 1) { // Reset charge mode
                         printf("Battery below 50%%\n");
                         active = 0; // Disable systems and prepare to charge
                     }
                 }
-
                 if (active == 0) { // Start charging if not active
-                    printf("Battery Charging\n");
                     dispatch(Q_CHARGE_SIG);
                 }
-                
+            } else if (battery_watt_h >= BATTERY_MAX_W * 0.65 || active == 1) {
+                if (active == 0) { // Systems running mode
+                    active = 1;
+                }
+                dispatch(Q_SYSTEMS_SIG);
+                status_ = Q_TRAN(&CubeSat_detumble);
+                break;
             } 
+
             status_ = Q_HANDLED();
             break;
         }
@@ -157,19 +153,16 @@ static QState CubeSat_detumble(CubeSat * const me) {
             battery_watt_h -= .01;
             
             if ((battery_watt_h < BATTERY_MAX_W * 0.65)) {
-
                 if (battery_watt_h < BATTERY_MAX_W * 0.50) {
                     if (active == 1) { // Reset charge mode
                         printf("Battery below 50%%\n");
                         active = 0; // Disable systems and prepare to charge
                     }
                 }
-
                 if (active == 0) { // Start charging if not active
-                    printf("Battery Charging\n");
                     dispatch(Q_CHARGE_SIG);
                 }
-                
+            
             } else if (battery_watt_h >= BATTERY_MAX_W * 0.65 || active == 1) {
                 if (active == 0) { // Systems running mode
                     active = 1;
@@ -177,8 +170,8 @@ static QState CubeSat_detumble(CubeSat * const me) {
                 dispatch(Q_TELEMETRY_SIG);
                 dispatch(Q_RADIO_SIG);
                 dispatch(Q_DETUMBLE_SIG);
-
             }  
+
             status_ = Q_HANDLED();
             break;
         }
