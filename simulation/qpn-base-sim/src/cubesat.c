@@ -6,6 +6,8 @@
 
 /* Define the CubeSat Variables  --------------------------------------*/
 float battery_watt_h = 0.0f;
+int active = 0;
+static void dispatch(QSignal sig);
 
 
 /* Declare the CubeSat class --------------------------------------*/
@@ -17,8 +19,9 @@ static QState CubeSat_initial(CubeSat * const me);
 static QState CubeSat_launch(CubeSat * const me);
 
 static QState CubeSat_leo(CubeSat * const me);
-static QState CubeSat_charge(CubeSat * const me);
-static QState CubeSat_active(CubeSat * const me);
+static QState CubeSat_deployment(CubeSat * const me);
+static QState CubeSat_detumble(CubeSat * const me);
+static QState CubeSat_telemetry(CubeSat * const me);
 
 /* The single instance of the CubeSat active object -------------------------*/
 CubeSat AO_CubeSat;
@@ -40,14 +43,12 @@ static QState CubeSat_launch(CubeSat * const me) {
         case Q_ENTRY_SIG: {
             printf("Cubesat in Launch State\n");
             /* ALL SYSTEM IDLE/OFF CHECK*/
-
-
             status_ = Q_HANDLED();
             break;
         }
         case Q_LEO_SIG: {
             printf("LEO Signal from Launch State\n");
-            status_ = Q_TRAN(&CubeSat_leo);
+            status_ = Q_TRAN(&CubeSat_deployment);
             break;
         }
         default: {
@@ -62,32 +63,24 @@ static QState CubeSat_leo(CubeSat * const me) {
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
             printf("Cubesat in LEO State\n");
-            /* CHARGE BATTERIES */
-            status_ = Q_TRAN(&CubeSat_charge);
-            break;
-        }
-        case Q_ACTIVE_SIG: {
-            printf("Active Signal from LEO State\n");
-            status_ = Q_TRAN(&CubeSat_active);
+            status_ = Q_HANDLED();
             break;
         }
         case Q_CHARGE_SIG: {
             printf("Charge Signal from LEO State\n");
-            status_ = Q_TRAN(&CubeSat_charge);
+            /*DISABLE THINGS*/
+
+            status_ = Q_HANDLED();
             break;
         }
-        case Q_TICK_SIG: {
-            printf("Tick Signal from Leo State\n");
-            /* CHECK BATTERY POWER PERIODICALLY  */
-            if (battery_watt_h <= BATTERY_MAX_W){
-                battery_watt_h += current_total_power_min/60;
-            } 
-
-            if (battery_watt_h < BATTERY_MAX_W * .60 ) {
-                status_ = Q_TRAN(&CubeSat_charge);
-            }   else if (battery_watt_h > BATTERY_MAX_W * .65) {
-                status_ = Q_TRAN(&CubeSat_active);
-            } 
+        case Q_RADIO_SIG: {
+            printf("Radio Signal from LEO State\n");
+            battery_watt_h -= 1.5;
+            status_ = Q_HANDLED();
+            break;
+        }
+        case Q_DEORBIT_SIG: {
+            printf("Deorbit Signal from LEO State\n");
             status_ = Q_HANDLED();
             break;
         }
@@ -99,18 +92,104 @@ static QState CubeSat_leo(CubeSat * const me) {
     return status_;
 }
 
-static QState CubeSat_charge(CubeSat * const me) {
+static QState CubeSat_deployment(CubeSat * const me) {
     QState status_;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Charge State\n");
-            /* TURN OFF ALL COMPONENTS/ PUT THEM IN IDLE */
-
+            printf("Cubesat in Deployment State\n");
             status_ = Q_HANDLED();
             break;
         }
-        case Q_RUN_SIG: {
-            printf("Run Signal from Charge State\n");
+        case Q_TICK_SIG: {
+            printf("Tick Signal from Deployment State\n");
+            battery_watt_h -= .01;
+
+            if (battery_watt_h >= BATTERY_MAX_W * 0.65) {
+                if (active == 0) { // Systems running mode
+                    active = 1;
+
+                    dispatch(Q_SYSTEMS_SIG);
+                    status_ = Q_TRAN(&CubeSat_detumble);
+                    break;
+                }
+            } else if ((battery_watt_h < BATTERY_MAX_W * 0.65)) {
+
+                if (battery_watt_h < BATTERY_MAX_W * 0.50) {
+                    if (active == 1) { // Reset charge mode
+                        printf("Battery below 50%%\n");
+                        active = 0; // Disable systems and prepare to charge
+                    }
+                }
+
+                if (active == 0) { // Start charging if not active
+                    printf("Battery Charging\n");
+                    dispatch(Q_CHARGE_SIG);
+                }
+                
+            } 
+            status_ = Q_HANDLED();
+            break;
+        }
+        case Q_SYSTEMS_SIG: {
+            printf("Systems Signal from Deployment State\n");
+            battery_watt_h -= .5;
+            status_ =  Q_HANDLED();
+            break;
+        }
+        default: {
+            status_ = Q_SUPER(&CubeSat_leo);
+            break;
+        }
+    }
+    return status_;
+}
+
+static QState CubeSat_detumble(CubeSat * const me) {
+    QState status_;
+    switch (Q_SIG(me)) {
+        case Q_ENTRY_SIG: {
+            printf("Cubesat in Detumble State\n");
+            status_ = Q_HANDLED();
+            break;
+        }
+        case Q_TICK_SIG: {
+            printf("Tick Signal from Detumble State\n");
+            battery_watt_h -= .01;
+            
+            if ((battery_watt_h < BATTERY_MAX_W * 0.65)) {
+
+                if (battery_watt_h < BATTERY_MAX_W * 0.50) {
+                    if (active == 1) { // Reset charge mode
+                        printf("Battery below 50%%\n");
+                        active = 0; // Disable systems and prepare to charge
+                    }
+                }
+
+                if (active == 0) { // Start charging if not active
+                    printf("Battery Charging\n");
+                    dispatch(Q_CHARGE_SIG);
+                }
+                
+            } else if (battery_watt_h >= BATTERY_MAX_W * 0.65 || active == 1) {
+                if (active == 0) { // Systems running mode
+                    active = 1;
+                }
+                dispatch(Q_TELEMETRY_SIG);
+                dispatch(Q_RADIO_SIG);
+                dispatch(Q_DETUMBLE_SIG);
+
+            }  
+            status_ = Q_HANDLED();
+            break;
+        }
+        case Q_TELEMETRY_SIG: {
+            printf("Telemetry Signal from Detumble State\n");
+            status_ = Q_HANDLED();
+            break;
+        }
+        case Q_DETUMBLE_SIG: {
+            printf("Detumble Signal from Detumble State\n");
+            battery_watt_h -= 1.3;
             status_ = Q_HANDLED();
             break;
         }
@@ -122,23 +201,33 @@ static QState CubeSat_charge(CubeSat * const me) {
     return status_;
 }
 
-static QState CubeSat_active(CubeSat * const me) {
+static QState CubeSat_telemetry(CubeSat * const me) {
     QState status_;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Active State\n");
+            printf("Cubesat in Telemetry State\n");
             status_ = Q_HANDLED();
             break;
         }
-        case Q_RUN_SIG: {
-            printf("Run Signal from Active State\n");
+        case Q_TICK_SIG: {
+            printf("Tick Signal from Telemetry State\n");
             status_ = Q_HANDLED();
             break;
         }
+        case Q_TELEMETRY_SIG: {
+            printf("Telemetry Signal from Telemetry State\n");
+            status_ = Q_HANDLED();
+            
+        } 
         default: {
             status_ = Q_SUPER(&CubeSat_leo);
             break;
         }
     }
     return status_;
+}
+
+static void dispatch(QSignal sig) {
+    Q_SIG((QHsm *)&AO_CubeSat) = sig;
+    QHsm_dispatch_((QHsm *)&AO_CubeSat);              /* dispatch the event */
 }

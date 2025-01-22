@@ -23,8 +23,8 @@ with dot.subgraph(name='cluster_leo') as leo:
 
     with leo.subgraph(name='cluster_deployment') as deployment:
         deployment.attr(label='Deployment', style='rounded', rankdir='TB')  # Active superstate layout
-        deployment.node('Deployment1', 'TICK / (CHARGE & SYSTEMS_CHECK)', shape='plaintext')
-        deployment.node('Deployment2', 'SYSTEMS_CHECK / (Test System & RADIO["systems nominal"])', shape='plaintext')
+        deployment.node('Deployment1', 'TICK / (CHARGE -> SYSTEMS_CHECK)', shape='plaintext')
+        deployment.node('Deployment2', 'SYSTEMS_CHECK / (Test System -> RADIO["systems nominal"])', shape='plaintext')
         deployment.attr(rank='same')
 
     with leo.subgraph(name='cluster_detumble') as detumble:
