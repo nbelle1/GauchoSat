@@ -15,13 +15,24 @@ void BSP_ledOn(void);
 enum CubeSatSignals {
     DUMMY_SIG = Q_USER_SIG,
     Q_LEO_SIG,
-    Q_ACTIVE_SIG,
+    Q_TICK_SIG,
     Q_CHARGE_SIG,
-    Q_TICK_SIG
+    Q_RADIO_SIG,
+    Q_DEORBIT_SIG,
+    Q_SYSTEMS_SIG,
+    Q_DETUMBLE_SIG,
+    Q_TELEMETRY_SIG
 };
 
 /* active object(s) used in this application -------------------------------*/
-extern struct CubeSat AO_CubeSat; /* opaque struct */
-void CubeSat_ctor(void);
 
+#define BATTERY_MAX_W 48            /* 48 Wh 4.5A max*/
+#define BATTERY_MAX_A 4.5
+
+extern double current_total_power_min;
+extern float battery_watt_h;
+extern int MOVE_TIME_F;
+
+extern struct CubeSat AO_CubeSat;   /* opaque struct */
+void CubeSat_ctor(void);
 #endif /* BSP_H */
