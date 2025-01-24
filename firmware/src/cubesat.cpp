@@ -5,8 +5,6 @@
 /* Define the CubeSat Variables  --------------------------------------*/
 float battery_watt_h = 0.0f;
 int active = 0;
-static void dispatch(QSignal sig);
-
 
 /* Declare the CubeSat class --------------------------------------*/
 typedef struct CubeSat {
@@ -216,9 +214,4 @@ static QState CubeSat_telemetry(CubeSat * const me) {
         }
     }
     return status_;
-}
-
-static void dispatch(QSignal sig) {
-    Q_SIG((QHsm *)&AO_CubeSat) = sig;
-    QHsm_dispatch_((QHsm *)&AO_CubeSat);              /* dispatch the event */
 }

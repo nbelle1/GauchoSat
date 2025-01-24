@@ -4,6 +4,7 @@
 
 // Interrupt for Timer1
 ISR(TIMER1_COMPA_vect) {
+    dispatch(Q_TICK_SIG);
     QF_tickXISR(0);         // Process time events for tick rate 0
 }
 

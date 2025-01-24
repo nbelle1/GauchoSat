@@ -4,7 +4,7 @@
 
 /* a very simple Board Support Package (BSP) -------------------------------*/
 enum {
-    BSP_TICKS_PER_SEC = 100, // number of system clock ticks in one second
+    BSP_TICKS_PER_SEC = 100, // number of system clock ticks in one second (HZ)
     LED_L = 13               // the pin number of the on-board LED (L)
 };
 void BSP_init(void);
@@ -35,4 +35,6 @@ extern int MOVE_TIME_F;
 
 extern struct CubeSat AO_CubeSat;   /* opaque struct */
 void CubeSat_ctor(void);
+
+static void dispatch(QSignal sig);
 #endif /* BSP_H */
