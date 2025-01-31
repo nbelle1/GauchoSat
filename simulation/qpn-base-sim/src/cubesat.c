@@ -99,6 +99,7 @@ static QState CubeSat_leo(CubeSat * const me) {
             break;
         }
         default: {
+            printf("Default in LEO State\n");
             status_ = Q_SUPER(&QHsm_top);
             break;
         }
@@ -116,6 +117,7 @@ static QState CubeSat_charge(CubeSat * const me) {
             break;
         }
         default: {
+            printf("Default in Charge State\n");
             status_ = Q_SUPER(&CubeSat_leo);
             break;
         }
@@ -125,6 +127,7 @@ static QState CubeSat_charge(CubeSat * const me) {
 
 static QState CubeSat_active(CubeSat * const me) {
     QState status_;
+    printf("CubeSat_active: Processing signal %d\n", Q_SIG(me));
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
             printf("Cubesat in Active State\n");
@@ -152,6 +155,7 @@ static QState CubeSat_active(CubeSat * const me) {
 
 static QState CubeSat_payload(CubeSat * const me) {
     QState status_;
+    printf("CubeSat_payload: Processing signal %d\n", Q_SIG(me));
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
             printf("Cubesat in Payload State\n");
@@ -174,6 +178,7 @@ static QState CubeSat_payload(CubeSat * const me) {
 
 static QState CubeSat_detumble(CubeSat * const me) {
     QState status_;
+    printf("CubeSat_detumble: Processing signal %d\n", Q_SIG(me));
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
             printf("Cubesat in Detumble State\n");
@@ -205,6 +210,7 @@ static QState CubeSat_detumble(CubeSat * const me) {
 
 static QState CubeSat_telemetry(CubeSat * const me) {
     QState status_;
+    printf("CubeSat_telemetry: Processing signal %d\n", Q_SIG(me));
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
             printf("Cubesat in Telemetry State\n");
