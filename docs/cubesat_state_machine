@@ -5,31 +5,50 @@ digraph CubeSat {
 	Launch1 [label="Launch State" shape=box]
 	Entry -> Launch1 [label=Start]
 	subgraph cluster_leo {
-		label="LEO " rankdir=LR style=rounded
-		Leo1 [label="CHARGE / {charge battery}" shape=plaintext style=dotted]
-		Leo2 [label="RADIO / {send message in buffer}" shape=plaintext style=dotted]
-		Leo3 [label="DE-ORBIT /" shape=plaintext style=dotted]
-		subgraph cluster_deployment {
-			label=Deployment rankdir=TB style=rounded
-			Deployment1 [label="TICK / (CHARGE & SYSTEMS_CHECK)" shape=plaintext]
-			Deployment2 [label="SYSTEMS_CHECK / (Test System & RADIO[\"systems nominal\"])" shape=plaintext]
-			rank=same
+		label=LEO rankdir=LR style=rounded
+		Leo1 [label="TICK / {checkBatterylvl()}" shape=plaintext style=dotted]
+		subgraph cluster_charge {
+			label="Idle Charging Batteries" rankdir=TB style=rounded
+			Charge1 [label="Entry / {TURN OFF ALL COMPONENTS}" shape=plaintext]
 		}
-		subgraph cluster_detumble {
-			label=Detumble rankdir=TB style=rounded
-			Detumble1 [label="TICK / (CHARGE -> TELEMETRY -> RADIO[send rotational velocity] -> Detumble)" shape=plaintext]
-			Detumble2 [label="DETUMBLE / (MagneTorquer Adjustment According to Rotational Velocity)" shape=plaintext]
-			Detumble3 [label="TELEMETRY / (Check rotational velocity)" shape=plaintext]
-			rank=same
+		subgraph cluster_active {
+			label=Active rankdir=TB style=rounded
+			Active1 [label="" shape=point]
+			subgraph cluster_payload {
+				label=Payload rankdir=TB style=rounded
+				Payload1 [label="" shape=plaintext]
+				subgraph cluster_detumble {
+					label=Detumble rankdir=TB style=rounded
+					Detumble1 [label="Entry / {TURN ON ADCS - RUN ADCS & ORIENT}" shape=plaintext]
+					Detumble2 [label="EXIT / {TURN OFF ADCS}" shape=plaintext]
+				}
+				subgraph cluster_telemetry {
+					label=Telemetry rankdir=TB style=rounded
+					Telemetry1 [label="Entry / {GET DATA FROM SENSORS - SAVE DATA IN BUFFER - SET R_TO_TRANSMIT}" shape=plaintext]
+					Telemetry2 [label="EXIT / {TURN OFF TELEMETRY}" shape=plaintext]
+				}
+				Detumble1 -> Telemetry1 [label="" lhead=cluster_telemetry ltail=cluster_detumble]
+			}
+			subgraph cluster_radio {
+				label=Radio rankdir=TB style=rounded
+				Radio1 [label="ENTRY / {TURN ON RADIO}" shape=plaintext]
+				Radio2 [label="EXIT / {TURN OFF RADIO}" shape=plaintext]
+				subgraph cluster_transmit {
+					label="Transmit Data" rankdir=TB style=rounded
+					Transmit1 [label="Entry / ()" shape=plaintext]
+				}
+				subgraph cluster_receive {
+					label="Receive Data" rankdir=TB style=rounded
+					Receive1 [label="Entry / ()" shape=plaintext]
+				}
+				Transmit1 -> Receive1 [label="TX_TIMEOUT(2 MIN)" lhead=cluster_receive ltail=cluster_transmit]
+			}
+			Active1 -> Detumble1 [label=Start lhead=cluster_detumble]
+			Payload1 -> Transmit1 [label=R_TO_TRANSMIT lhead=cluster_transmit ltail=cluster_payload]
+			Receive1 -> Payload1 [label="RX_TIMEOUT(2 MIN)" lhead=cluster_payload ltail=cluster_receive]
 		}
-		subgraph cluster_telemetry {
-			label=Telemetry rankdir=TB style=rounded
-			Telemetry1 [label="TICK / (CHARGE -> TELEMETRY -> RADIO[send data])" shape=plaintext]
-			Telemetry2 [label="TELEMETRY / (Collect & Store Data)" shape=plaintext]
-			rank=same
-		}
-		Deployment1 -> Detumble1 [label="SYSTEMS_CHECK / System Check Done " lhead=cluster_detumble ltail=cluster_deployment]
-		Detumble1 -> Telemetry1 [label="TICK / Detumble Done & RADIO[\"Detumble Done\"]" lhead=cluster_telemetry ltail=cluster_detumble]
+		Charge1 -> Active1 [label="BATTERIES > 80%" lhead=cluster_active ltail=cluster_charge]
+		Active1 -> Charge1 [label="BATTERIES < 30%" lhead=cluster_charge ltail=cluster_active]
 	}
-	Launch1 -> Deployment1 [label="LEO Signal" lhead=cluster_deployment]
+	Launch1 -> Charge1 [label="LEO Signal" lhead=cluster_charge]
 }

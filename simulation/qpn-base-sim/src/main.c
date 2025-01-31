@@ -25,7 +25,7 @@ static int outf;
 int simTime = 0;            /* TIME MINUTES */
 int seed;
 
-#define TOTAL_SIM_TIME 2200
+#define TOTAL_SIM_TIME 1700
 #define TRUE 1
 #define FALSE 0
 
@@ -55,25 +55,26 @@ int main(int argc, char *argv[]) {
     QHsm_init_((QHsm *)&AO_CubeSat);
 
     dispatch(Q_LEO_SIG);
-    
+    dispatch(Q_ACTIVE_SIG);
 
-    while (simTime < TOTAL_SIM_TIME){
-       if (outf) fprintf(l_outFile, "total power minute %d:, %lf\n",
-            simTime+1, total_power_min[simTime]);
-        
-        current_total_power_min = total_power_min[simTime];
+    // while (simTime < TOTAL_SIM_TIME) {
+    //     if (outf) fprintf(l_outFile, "total power minute %d:, %lf\n",
+    //             simTime + 1, total_power_min[simTime]);
 
-        /* CHECK BATTERY POWER PERIODICALLY  */
-        if (battery_watt_h <= BATTERY_MAX_W){
-            battery_watt_h += current_total_power_min/60;
-        } 
-        printf("Total power in battery: %.2f\n", battery_watt_h);
+    //     current_total_power_min = total_power_min[simTime];
 
+    //     /* CHECK BATTERY POWER PERIODICALLY  */
+    //     if (battery_watt_h <= BATTERY_MAX_W) {
+    //         battery_watt_h += current_total_power_min / 60;
+    //     }
+    //     printf("Total power in battery: %.2f\n", battery_watt_h);  // Debug print
 
-        dispatch(Q_TICK_SIG);
-        simTime++;
-    }
+    //     // dispatch(Q_TICK_SIG);
+    //     simTime++;
 
+    //     printf("Simulation time: %d minutes\n", simTime);  // Debug print
+    // }
+    printf("done");
     if (outf) fclose(l_outFile);
 
     return 0;
