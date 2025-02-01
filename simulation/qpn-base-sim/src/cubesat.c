@@ -6,7 +6,7 @@
 
 /* Define CubeSat Variables & Functions --------------------------------------*/
 float battery_watt_h = 0.0f;
-int active = 0;
+int active = 1;
 int r_to_transmit = 0;
 
 static void dispatch(QSignal sig);
@@ -84,7 +84,7 @@ static QState CubeSat_leo(CubeSat * const me) {
                 status_ = Q_TRAN(&CubeSat_active);
                 break;
             }
-            if (battery_watt_h < BATTERY_MAX_W * 0.3) {
+            if (battery_watt_h < BATTERY_MAX_W * 0.3 && active == 1) {
                 printf("Battery level low, transitioning to Charge State\n");
                 active = 0;
                 status_ = Q_TRAN(&CubeSat_charge);

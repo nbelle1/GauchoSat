@@ -25,7 +25,7 @@ static int outf;
 int simTime = 0;            /* TIME MINUTES */
 int seed;
 
-#define TOTAL_SIM_TIME 4000
+#define TOTAL_SIM_TIME 1700
 #define TRUE 1
 #define FALSE 0
 
