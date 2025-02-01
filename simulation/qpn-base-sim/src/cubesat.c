@@ -48,14 +48,14 @@ static QState CubeSat_launch(CubeSat * const me) {
     QState status_;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Launch State\n");
+            printf("Entry Signal from Launch State\n");
             /* ALL SYSTEM IDLE/OFF CHECK*/
             status_ = Q_HANDLED();
             break;
         }
         case Q_LEO_SIG: {
             printf("LEO Signal from Launch State\n");
-            status_ = Q_TRAN(&CubeSat_active);
+            status_ = Q_TRAN(&CubeSat_charge);
             break;
         }
         default: {
@@ -69,12 +69,12 @@ static QState CubeSat_leo(CubeSat * const me) {
     QState status_;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in LEO State\n");
+            printf("Entry Signal from LEO State\n");
             status_ = Q_HANDLED();
             break;
         }
-        case Q_TICK_SIG: {
-            printf("Tick Signal from LEO State\n");
+        case Q_BATTERY_SIG: {
+            printf("Battery Signal from LEO State\n");
             battery_watt_h -= .01;
 
             if (battery_watt_h > BATTERY_MAX_W * 0.5 && active == 0) {
@@ -111,13 +111,17 @@ static QState CubeSat_charge(CubeSat * const me) {
     QState status_;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Charge State\n");
+            printf("Entry Signal from Charge State\n");
             printf("TURN OFF/IDLE ALL SYSTEMS\n");
             status_ = Q_HANDLED();
             break;
         }
+        case Q_EXIT_SIG: {
+            printf("Exit Signal from Charge State\n");
+            status_ = Q_HANDLED();
+            break;
+        }
         default: {
-            printf("Default in Charge State\n");
             status_ = Q_SUPER(&CubeSat_leo);
             break;
         }
@@ -127,10 +131,9 @@ static QState CubeSat_charge(CubeSat * const me) {
 
 static QState CubeSat_active(CubeSat * const me) {
     QState status_;
-    printf("CubeSat_active: Processing signal %d\n", Q_SIG(me));
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Active State\n");
+            printf("Entry Signal from Active State\n");
             status_ = Q_HANDLED();
             break;
         }
@@ -145,7 +148,6 @@ static QState CubeSat_active(CubeSat * const me) {
             break;
         }
         default: {
-            printf("Default in Active State\n");
             status_ = Q_SUPER(&CubeSat_leo);
             break;
         }
@@ -155,10 +157,9 @@ static QState CubeSat_active(CubeSat * const me) {
 
 static QState CubeSat_payload(CubeSat * const me) {
     QState status_;
-    printf("CubeSat_payload: Processing signal %d\n", Q_SIG(me));
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Payload State\n");
+            printf("Entry Signal from Payload State\n");
             status_ = Q_HANDLED();
             break;
         }
@@ -168,7 +169,6 @@ static QState CubeSat_payload(CubeSat * const me) {
             break;
         }
         default: {
-            printf("Default in Payload State\n");
             status_ = Q_SUPER(&CubeSat_active);
             break;
         }
@@ -178,16 +178,15 @@ static QState CubeSat_payload(CubeSat * const me) {
 
 static QState CubeSat_detumble(CubeSat * const me) {
     QState status_;
-    printf("CubeSat_detumble: Processing signal %d\n", Q_SIG(me));
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Detumble State\n");
+            printf("Entry Signal from Detumble State\n");
             printf("TURN ON ADCS\n");
             status_ = Q_HANDLED();
             break;
         }
-        case Q_INIT_SIG: {
-            printf("Init Signal from Detumble State\n");
+        case Q_TICK_SIG: {
+            printf("Tick Signal from Detumble State\n");
             /*WRITE DETUMBLE CODE IN HERE*/
             status_ = Q_TRAN(&CubeSat_telemetry);
             // status_ = Q_HANDLED();
@@ -200,7 +199,6 @@ static QState CubeSat_detumble(CubeSat * const me) {
             break;
         }
         default: {
-            printf("Default in Detumble State\n");
             status_ = Q_SUPER(&CubeSat_payload);
             break;
         }
@@ -210,18 +208,17 @@ static QState CubeSat_detumble(CubeSat * const me) {
 
 static QState CubeSat_telemetry(CubeSat * const me) {
     QState status_;
-    printf("CubeSat_telemetry: Processing signal %d\n", Q_SIG(me));
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Telemetry State\n");
+            printf("Entry Signal from Telemetry State\n");
             printf("TURN ON Telemetry\n");
             status_ = Q_HANDLED();
             break;
         }
-        case Q_INIT_SIG: {
-            printf("Init Signal from Telemetry State\n");
-            /*WRITE TELEMETRY CODE IN HERE*/
-            status_ = Q_TRAN(&CubeSat_transmit); 
+        case Q_TICK_SIG: {
+            printf("Tick Signal from Telemetry State\n");
+            /*WRITE Telemetry CODE IN HERE*/
+            status_ = Q_TRAN(&CubeSat_radio);
             break;
         }
         case Q_EXIT_SIG: {
@@ -231,7 +228,6 @@ static QState CubeSat_telemetry(CubeSat * const me) {
             break;
         }
         default: {
-            printf("Default in Telemetry State\n");
             status_ = Q_SUPER(&CubeSat_payload);
             break;
         }
@@ -243,9 +239,14 @@ static QState CubeSat_radio(CubeSat * const me) {
     QState status_;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Radio State\n");
+            printf("Entry Signal from Radio State\n");
             printf("TURN ON RADIO\n");
             status_ = Q_HANDLED();
+            break;
+        }
+        case Q_INIT_SIG: {
+            printf("Init Signal from Radio State\n");
+            status_ = Q_TRAN(&CubeSat_transmit);
             break;
         }
         case Q_EXIT_SIG: {
@@ -266,8 +267,14 @@ static QState CubeSat_transmit(CubeSat * const me) {
     QState status_;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Transmit State\n");
+            printf("Entry Signal from Transmit State\n");
             status_ = Q_HANDLED();
+            break;
+        }
+        case Q_TICK_SIG: {
+            printf("Tick Signal from Transmit State\n");
+            /*WRITE Telemetry CODE IN HERE*/
+            status_ = Q_TRAN(&CubeSat_receive);
             break;
         }
         case Q_EXIT_SIG: {
@@ -276,7 +283,6 @@ static QState CubeSat_transmit(CubeSat * const me) {
             break;
         }
         default: {
-            printf("Default in Transmit State\n");
             status_ = Q_SUPER(&CubeSat_radio);
             break;
         }
@@ -288,8 +294,14 @@ static QState CubeSat_receive(CubeSat * const me) {
     QState status_;
     switch (Q_SIG(me)) {
         case Q_ENTRY_SIG: {
-            printf("Cubesat in Receive State\n");
+            printf("Entry Signal from Receive State\n");
             status_ = Q_HANDLED();
+            break;
+        }
+        case Q_TICK_SIG: {
+            printf("Tick Signal from Recieve State\n");
+            /*WRITE Telemetry CODE IN HERE*/
+            status_ = Q_TRAN(&CubeSat_active);
             break;
         }
         case Q_EXIT_SIG: {
@@ -304,6 +316,7 @@ static QState CubeSat_receive(CubeSat * const me) {
     }
     return status_;
 }
+
 
 static void dispatch(QSignal sig) {
     Q_SIG((QHsm *)&AO_CubeSat) = sig;

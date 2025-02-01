@@ -15,11 +15,10 @@ void BSP_ledOn(void);
 enum CubeSatSignals {
     DUMMY_SIG = Q_USER_SIG,
     Q_LEO_SIG,
-    Q_TICK_SIG,
+    Q_BATTERY_SIG,
     Q_DEORBIT_SIG,
     Q_DETUMBLE_SIG,
-    Q_TELEMETRY_SIG,
-    Q_ACTIVE_SIG
+    Q_TICK_SIG,
 };
 
 /* active object(s) used in this application -------------------------------*/
