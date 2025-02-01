@@ -4,11 +4,12 @@
 #include "qpn.h"    /* QP-nano framework API */
 #include "../lib/bsp.h"  /* Board Support Package interface */
 
-/* Define the CubeSat Variables  --------------------------------------*/
+/* Define CubeSat Variables & Functions --------------------------------------*/
 float battery_watt_h = 0.0f;
 int active = 0;
-static void dispatch(QSignal sig);
+int r_to_transmit = 0;
 
+static void dispatch(QSignal sig);
 
 /* Declare the CubeSat class --------------------------------------*/
 typedef struct CubeSat {
@@ -139,7 +140,11 @@ static QState CubeSat_active(CubeSat * const me) {
         }
         case Q_INIT_SIG: {
             printf("Init Signal from Active State\n");
-            status_ = Q_TRAN(&CubeSat_detumble);
+            if (r_to_transmit == 1) {
+                status_ = Q_TRAN(&CubeSat_transmit);
+            } else {
+                status_ = Q_TRAN(&CubeSat_detumble);
+            }
             break;
         }
         case Q_EXIT_SIG: {
@@ -187,6 +192,7 @@ static QState CubeSat_detumble(CubeSat * const me) {
         }
         case Q_TICK_SIG: {
             printf("Tick Signal from Detumble State\n");
+            battery_watt_h -= .15;
             /*WRITE DETUMBLE CODE IN HERE*/
             status_ = Q_TRAN(&CubeSat_telemetry);
             // status_ = Q_HANDLED();
@@ -216,9 +222,11 @@ static QState CubeSat_telemetry(CubeSat * const me) {
             break;
         }
         case Q_TICK_SIG: {
+            battery_watt_h -= .21;
             printf("Tick Signal from Telemetry State\n");
             /*WRITE Telemetry CODE IN HERE*/
-            status_ = Q_TRAN(&CubeSat_radio);
+            r_to_transmit = 1;
+            status_ = Q_TRAN(&CubeSat_active);
             break;
         }
         case Q_EXIT_SIG: {
@@ -241,12 +249,8 @@ static QState CubeSat_radio(CubeSat * const me) {
         case Q_ENTRY_SIG: {
             printf("Entry Signal from Radio State\n");
             printf("TURN ON RADIO\n");
+            battery_watt_h -= 1.5;
             status_ = Q_HANDLED();
-            break;
-        }
-        case Q_INIT_SIG: {
-            printf("Init Signal from Radio State\n");
-            status_ = Q_TRAN(&CubeSat_transmit);
             break;
         }
         case Q_EXIT_SIG: {
@@ -279,6 +283,7 @@ static QState CubeSat_transmit(CubeSat * const me) {
         }
         case Q_EXIT_SIG: {
             printf("Exit Signal in Transmit State\n");
+            r_to_transmit = 0;
             status_ = Q_HANDLED();
             break;
         }
