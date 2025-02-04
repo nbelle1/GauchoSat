@@ -43,7 +43,7 @@ Q_NORETURN Q_onAssert(char const Q_ROM * const module, int location) {
     for (;;) {}
 }
 
-static void dispatch(QSignal sig) {
+void dispatch(QSignal sig) {
     Q_SIG((QHsm *)&AO_CubeSat) = sig;
     QHsm_dispatch_((QHsm *)&AO_CubeSat);              /* dispatch the event */
 }

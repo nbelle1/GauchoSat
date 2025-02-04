@@ -4,8 +4,10 @@
 
 // Interrupt for Timer1
 ISR(TIMER1_COMPA_vect) {
-    dispatch(Q_TICK_SIG);
-    QF_tickXISR(0);         // Process time events for tick rate 0
+    QACTIVE_POST_ISR((QActive *)&AO_CubeSat, Q_BATTERY_SIG, 0U);
+    QACTIVE_POST_ISR((QActive *)&AO_CubeSat, Q_TICK_SIG, 0U);
+
+    // QF_tickXISR(0);         // Process time events for tick rate 0
 }
 
 void timer1_init(void){

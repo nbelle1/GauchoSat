@@ -23,7 +23,6 @@ void setup() {
     // Initialize the QF-nano framework
     QF_init(Q_DIM(QF_active));
     BSP_init();
-
     CubeSat_ctor();  // Initialize CubeSat AO
 }
 

@@ -4,7 +4,7 @@
 
 /* a very simple Board Support Package (BSP) -------------------------------*/
 enum {
-    BSP_TICKS_PER_SEC = 100, // number of system clock ticks in one second (HZ)
+    BSP_TICKS_PER_SEC = 1, // number of system clock ticks in one second (HZ)
     LED_L = 13               // the pin number of the on-board LED (L)
 };
 void BSP_init(void);
@@ -15,13 +15,10 @@ void BSP_ledOn(void);
 enum CubeSatSignals {
     DUMMY_SIG = Q_USER_SIG,
     Q_LEO_SIG,
-    Q_TICK_SIG,
-    Q_CHARGE_SIG,
-    Q_RADIO_SIG,
+    Q_BATTERY_SIG,
     Q_DEORBIT_SIG,
-    Q_SYSTEMS_SIG,
     Q_DETUMBLE_SIG,
-    Q_TELEMETRY_SIG
+    Q_TICK_SIG,
 };
 
 /* active object(s) used in this application -------------------------------*/
@@ -36,5 +33,5 @@ extern int MOVE_TIME_F;
 extern struct CubeSat AO_CubeSat;   /* opaque struct */
 void CubeSat_ctor(void);
 
-static void dispatch(QSignal sig);
+void dispatch(QSignal sig);
 #endif /* BSP_H */
